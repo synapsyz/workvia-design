@@ -13,7 +13,7 @@ import { SOP, Step } from "./types";
 
 interface SOPEditorProps {
   sop: SOP;
-  onSave: (updated: SOP) => void;
+  onSave: (updatedSOP: SOP) => void;
   onBack: () => void;
 }
 
@@ -37,7 +37,12 @@ export default function SOPEditor({ sop, onSave, onBack }: SOPEditorProps) {
     setActiveStepIndex(updatedSteps.length - 1);
   };
 
-  const updateStep = (index: number, field: keyof Step, value: any) => {
+  // This function is now type-safe
+  const updateStep = <K extends keyof Step>(
+    index: number,
+    field: K,
+    value: Step[K]
+  ) => {
     const updatedSteps = [...localSOP.steps];
     updatedSteps[index] = { ...updatedSteps[index], [field]: value };
     setLocalSOP({ ...localSOP, steps: updatedSteps });
@@ -125,7 +130,10 @@ export default function SOPEditor({ sop, onSave, onBack }: SOPEditorProps) {
           {previewMode ? "Preview SOP" : "Edit SOP"}
         </h2>
         <div className="flex gap-2">
-          <button onClick={onBack} className="px-4 py-2 border rounded-lg text-sm">
+          <button
+            onClick={onBack}
+            className="px-4 py-2 border rounded-lg text-sm"
+          >
             Back
           </button>
 
@@ -352,7 +360,9 @@ export default function SOPEditor({ sop, onSave, onBack }: SOPEditorProps) {
                                         deleteStep(index);
                                       }}
                                       className={`text-sm ${
-                                        isActive ? "text-white" : "text-red-600"
+                                        isActive
+                                          ? "text-white"
+                                          : "text-red-600"
                                       }`}
                                     >
                                       Delete
@@ -387,7 +397,11 @@ export default function SOPEditor({ sop, onSave, onBack }: SOPEditorProps) {
                                           type="text"
                                           value={step.title}
                                           onChange={(e) =>
-                                            updateStep(index, "title", e.target.value)
+                                            updateStep(
+                                              index,
+                                              "title",
+                                              e.target.value
+                                            )
                                           }
                                           className="w-full mt-1 p-2 border rounded-md"
                                         />
@@ -401,7 +415,11 @@ export default function SOPEditor({ sop, onSave, onBack }: SOPEditorProps) {
                                         <textarea
                                           value={step.description}
                                           onChange={(e) =>
-                                            updateStep(index, "description", e.target.value)
+                                            updateStep(
+                                              index,
+                                              "description",
+                                              e.target.value
+                                            )
                                           }
                                           className="w-full mt-1 p-2 border rounded-md"
                                           rows={3}
@@ -419,13 +437,17 @@ export default function SOPEditor({ sop, onSave, onBack }: SOPEditorProps) {
                                               key={i}
                                               className="relative border rounded-lg overflow-hidden w-40 h-32 bg-gray-100"
                                             >
-                                              {media.startsWith("data:video") ? (
+                                              {media.startsWith(
+                                                "data:video"
+                                              ) ? (
                                                 <video
                                                   controls
                                                   src={media}
                                                   className="w-full h-full object-cover"
                                                 />
-                                              ) : media.startsWith("data:audio") ? (
+                                              ) : media.startsWith(
+                                                  "data:audio"
+                                                ) ? (
                                                 <audio
                                                   controls
                                                   src={media}
@@ -439,7 +461,9 @@ export default function SOPEditor({ sop, onSave, onBack }: SOPEditorProps) {
                                                 />
                                               )}
                                               <button
-                                                onClick={() => removeStepMedia(index, i)}
+                                                onClick={() =>
+                                                  removeStepMedia(index, i)
+                                                }
                                                 className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full"
                                               >
                                                 <X className="w-3 h-3" />
@@ -473,7 +497,11 @@ export default function SOPEditor({ sop, onSave, onBack }: SOPEditorProps) {
                                           type="text"
                                           value={step.condition || ""}
                                           onChange={(e) =>
-                                            updateStep(index, "condition", e.target.value)
+                                            updateStep(
+                                              index,
+                                              "condition",
+                                              e.target.value
+                                            )
                                           }
                                           className="w-full mt-1 p-2 border rounded-md"
                                         />

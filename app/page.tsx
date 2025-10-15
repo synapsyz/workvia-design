@@ -4,14 +4,30 @@ import { useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 
+// Define specific types to replace 'any'
+type ActiveTab = "login" | "signup" | "reset";
+type FormState = {
+  name: string;
+  email: string;
+  password: string;
+  country: string;
+};
+
 export default function AuthPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"login" | "signup" | "reset">("login");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("login");
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", password: "", country: "" });
+  const [form, setForm] = useState<FormState>({
+    name: "",
+    email: "",
+    password: "",
+    country: "",
+  });
   const [msg, setMsg] = useState("");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -33,7 +49,7 @@ export default function AuthPage() {
       localStorage.setItem("refresh", data.refresh);
 
       setMsg("Login successful!");
-      router.push("/dashboard"); // ✅ redirect after login
+      router.push("/dashboard");
     } catch (err) {
       setMsg("Invalid credentials");
     } finally {
@@ -90,14 +106,16 @@ export default function AuthPage() {
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8">
-        <div className="text-center text-2xl font-bold text-blue-600 mb-6">YourLogo</div>
+        <div className="text-center text-2xl font-bold text-blue-600 mb-6">
+          YourLogo
+        </div>
 
         {/* Tabs */}
         <div className="flex justify-around mb-6 border-b">
-          {["login", "signup", "reset"].map((tab) => (
+          {(["login", "signup", "reset"] as ActiveTab[]).map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab as any)}
+              onClick={() => setActiveTab(tab)}
               className={`py-2 px-4 font-medium transition ${
                 activeTab === tab
                   ? "border-b-2 border-blue-600 text-blue-600"
@@ -143,21 +161,26 @@ export default function AuthPage() {
 }
 
 /* ------------------- Forms ------------------- */
+interface FormProps {
+  form: FormState;
+  handleInputChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => void;
+  handleSubmit: (e: React.FormEvent) => void;
+  loading: boolean;
+}
 
 function LoginForm({
   form,
   handleInputChange,
   handleSubmit,
   loading,
-}: {
-  form: any;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleSubmit: (e: React.FormEvent) => void;
-  loading: boolean;
-}) {
+}: FormProps) {
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
-      <h2 className="text-xl font-semibold text-center">Sign in to your account</h2>
+      <h2 className="text-xl font-semibold text-center">
+        Sign in to your account
+      </h2>
 
       <div>
         <label className="block text-sm font-medium">Email</label>
@@ -217,15 +240,12 @@ function SignupForm({
   handleInputChange,
   handleSubmit,
   loading,
-}: {
-  form: any;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
-  handleSubmit: (e: React.FormEvent) => void;
-  loading: boolean;
-}) {
+}: FormProps) {
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
-      <h2 className="text-xl font-semibold text-center">Create your account</h2>
+      <h2 className="text-xl font-semibold text-center">
+        Create your account
+      </h2>
 
       <div>
         <label className="block text-sm font-medium">Full name</label>
@@ -306,15 +326,12 @@ function ResetForm({
   handleInputChange,
   handleSubmit,
   loading,
-}: {
-  form: any;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleSubmit: (e: React.FormEvent) => void;
-  loading: boolean;
-}) {
+}: FormProps) {
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
-      <h2 className="text-xl font-semibold text-center">Reset your password</h2>
+      <h2 className="text-xl font-semibold text-center">
+        Reset your password
+      </h2>
       <p className="text-sm text-center text-gray-500">
         Enter your email and we’ll send you a reset link.
       </p>

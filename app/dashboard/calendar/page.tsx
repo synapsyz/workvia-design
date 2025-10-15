@@ -3,7 +3,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import Head from "next/head";
 import {
-  Bell,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -14,6 +13,7 @@ import {
   View,
   EventPropGetter,
   SlotInfo,
+  ToolbarProps,
 } from "react-big-calendar";
 import withDragAndDrop, { EventInteractionArgs } from "react-big-calendar/lib/addons/dragAndDrop";
 import moment from "moment";
@@ -49,27 +49,19 @@ export default function DashboardCalendar() {
     }
   }, []);
 
-  const toggleDarkMode = () => {
-    setDarkMode((prev) => {
-      const next = !prev;
-      if (typeof window !== "undefined") localStorage.setItem("theme", next ? "dark" : "light");
-      return next;
-    });
-  };
-
   /* ---------- Theme Tokens ---------- */
   const cardBg = darkMode
     ? "bg-[#1E293B] border-[#334155] shadow-[0_8px_24px_rgba(2,6,23,0.35)] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
     : "bg-white border-gray-100 shadow-sm";
-  const textMuted = darkMode ? "text-gray-400" : "text-gray-500";
   const borderColor = darkMode ? "border-[#334155]" : "border-gray-200";
 
   /* ---------- Calendar Event Handlers ---------- */
   const handleSelectSlot = (slotInfo: SlotInfo) => {
     const title = prompt("Enter event title:");
     if (!title) return;
-    const type = (prompt("Enter event type (meeting, deadline, personal):") as MyEvent["type"]) || "meeting";
-    setEvents([...events, { id: events.length + 1, title, start: slotInfo.start, end: slotInfo.end, type }]);
+    const typeInput = prompt("Enter event type (meeting, deadline, personal):") || "meeting";
+    const type = ["meeting", "deadline", "personal"].includes(typeInput) ? (typeInput as MyEvent["type"]) : "meeting";
+    setEvents([...events, { id: Date.now(), title, start: slotInfo.start, end: slotInfo.end, type }]);
   };
 
   const handleEventDrop = ({ event, start, end }: EventInteractionArgs<MyEvent>) => {
@@ -85,8 +77,14 @@ export default function DashboardCalendar() {
   };
 
   const handleSelectEvent = (event: MyEvent) => {
-    const newTitle = prompt("Edit event title:", event.title) || event.title;
-    setEvents((prev) => prev.map((e) => (e.id === event.id ? { ...e, title: newTitle } : e)));
+    const currentTitle = String(event.title ?? "");
+    const newTitle = prompt("Edit event title:", currentTitle);
+
+    if (newTitle && newTitle !== currentTitle) {
+        setEvents((prev) =>
+            prev.map((e) => (e.id === event.id ? { ...e, title: newTitle } : e))
+        );
+    }
   };
 
   const eventPropGetter: EventPropGetter<MyEvent> = (event) => {
@@ -105,11 +103,11 @@ export default function DashboardCalendar() {
     };
   };
 
-  /* ---------- Custom Toolbar ---------- */
-  const CustomToolbar = (toolbar: any) => {
-    const goToBack = () => toolbar.onNavigate("PREV");
-    const goToNext = () => toolbar.onNavigate("NEXT");
-    const goToToday = () => toolbar.onNavigate("TODAY");
+  /* ---------- Custom Toolbar (FIXED) ---------- */
+  const CustomToolbar: React.FC<ToolbarProps<MyEvent>> = ({ onNavigate, onView, label, view }) => {
+    const goToBack = () => onNavigate("PREV");
+    const goToNext = () => onNavigate("NEXT");
+    const goToToday = () => onNavigate("TODAY");
 
     const btnClass = (active: boolean) =>
       `px-4 py-2 rounded-lg text-sm font-medium transition-all border ${borderColor} ${
@@ -132,16 +130,14 @@ export default function DashboardCalendar() {
           </button>
         </div>
 
-        <div className="text-sm font-semibold">
-          {typeof toolbar.label === "string" ? toolbar.label : String(toolbar.label ?? "")}
-        </div>
+        <div className="text-sm font-semibold">{label}</div>
 
         <div className="flex items-center gap-3">
-          {["month", "week", "day"].map((v) => (
+          {(["month", "week", "day"] as View[]).map((v) => (
             <button
               key={v}
-              onClick={() => toolbar.onView(v)}
-              className={btnClass(toolbar.view === v)}
+              onClick={() => onView(v)}
+              className={btnClass(view === v)}
             >
               {v.charAt(0).toUpperCase() + v.slice(1)}
             </button>
@@ -156,26 +152,13 @@ export default function DashboardCalendar() {
       <Head>
         <title>Calendar — Workvia</title>
       </Head>
-
-      <div
-        className={`min-h-screen ${
-          darkMode ? "bg-[#0A0F1E] text-white" : "bg-gray-50 text-gray-900"
-        } transition-colors`}
-      >
+      <div className={`min-h-screen ${darkMode ? "bg-[#0A0F1E] text-white" : "bg-gray-50 text-gray-900"} transition-colors`}>
         <div className="flex">
-
           <main className="flex-1 p-6" ref={notifRef}>
-
-            {/* Calendar Card */}
             <div className={`rounded-2xl border ${borderColor} ${cardBg} p-6`}>
-              <div
-                className={`mb-4 py-3 px-5 rounded-xl font-semibold text-lg text-white bg-gradient-to-r ${
-                  darkMode ? "from-blue-800 to-blue-600" : "from-[#0A236E] to-blue-700"
-                } shadow-md flex items-center justify-between`}
-              >
+              <div className={`mb-4 py-3 px-5 rounded-xl font-semibold text-lg text-white bg-gradient-to-r ${darkMode ? "from-blue-800 to-blue-600" : "from-[#0A236E] to-blue-700"} shadow-md flex items-center justify-between`}>
                 <span>Your Schedule</span>
               </div>
-
               <DnDCalendar
                 localizer={localizer}
                 events={events}

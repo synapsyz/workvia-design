@@ -12,7 +12,6 @@ import {
   Filter,
   Trash2,
   X,
-  Timer,
   ChevronLeft,
   ChevronRight,
   CheckCircle,
@@ -23,6 +22,19 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 /* ============== Types ============== */
+// Defined a specific type for a section
+interface Section {
+  title: string;
+  duration: string | number;
+}
+
+interface Question {
+  id: number;
+  question: string;
+  options?: string[];
+  type: "single" | "multi" | "fill" | "match";
+}
+
 interface Exam {
   id: number;
   title: string;
@@ -34,34 +46,32 @@ interface Exam {
   scheduleEnd: string;
   visibility: "public" | "private";
   hasSections: boolean;
-  sections?: any[];
+  sections?: Section[]; // Used the new Section interface
   totalQuestions: number;
   date: string;
-  questions?: {
-    id: number;
-    question: string;
-    options?: string[];
-    type: "single" | "multi" | "fill" | "match";
-  }[];
+  questions?: Question[];
 }
+
+// Defined types for filter states to avoid using 'any'
+type FilterTab = "today" | "upcoming" | "completed";
+type VisibilityFilter = "all" | "public" | "private";
+type HasSectionsFilter = "all" | "yes" | "no";
 
 export default function ExamsPage() {
   const router = useRouter();
   const [exams, setExams] = useState<Exam[]>([]);
   const [search, setSearch] = useState("");
-  const [filterTab, setFilterTab] = useState<"today" | "upcoming" | "completed">(
-    "today"
-  );
-  const [visibilityFilter, setVisibilityFilter] = useState<
-    "all" | "public" | "private"
-  >("all");
-  const [hasSectionsFilter, setHasSectionsFilter] = useState<
-    "all" | "yes" | "no"
-  >("all");
+  const [filterTab, setFilterTab] = useState<FilterTab>("today");
+  const [visibilityFilter, setVisibilityFilter] =
+    useState<VisibilityFilter>("all");
+  const [hasSectionsFilter, setHasSectionsFilter] =
+    useState<HasSectionsFilter>("all");
 
   const [previewExam, setPreviewExam] = useState<Exam | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [previewStep, setPreviewStep] = useState<"info" | "description" | "exam">("info");
+  const [previewStep, setPreviewStep] = useState<"info" | "description" | "exam">(
+    "info"
+  );
 
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("exams") || "[]");
@@ -120,25 +130,27 @@ export default function ExamsPage() {
   const renderExamPreview = () => {
     if (!previewExam) return null;
 
-    const questions = previewExam.questions || [
-      {
-        id: 1,
-        question: "Example Question 1: What is 2 + 2?",
-        options: ["1", "2", "3", "4"],
-        type: "single",
-      },
-      {
-        id: 2,
-        question: "Example Question 2: Which are prime numbers?",
-        options: ["2", "3", "4", "5"],
-        type: "multi",
-      },
-      {
-        id: 3,
-        question: "Example Question 3: The capital of India is _____.",
-        type: "fill",
-      },
-    ];
+    const questions: Question[] = previewExam.questions?.length
+      ? previewExam.questions
+      : [
+          {
+            id: 1,
+            question: "Example Question 1: What is 2 + 2?",
+            options: ["1", "2", "3", "4"],
+            type: "single",
+          },
+          {
+            id: 2,
+            question: "Example Question 2: Which are prime numbers?",
+            options: ["2", "3", "4", "5"],
+            type: "multi",
+          },
+          {
+            id: 3,
+            question: "Example Question 3: The capital of India is _____.",
+            type: "fill",
+          },
+        ];
 
     const current = questions[currentQuestionIndex];
 
@@ -184,8 +196,8 @@ export default function ExamsPage() {
                 <strong>Duration:</strong> {previewExam.duration} minutes
               </p>
               <p>
-                <strong>Marking Scheme:</strong> +{previewExam.marksPerQuestion} / -
-                {previewExam.negativeMarks}
+                <strong>Marking Scheme:</strong> +{previewExam.marksPerQuestion}{" "}
+                / -{previewExam.negativeMarks}
               </p>
               <p>
                 <strong>Sections:</strong>{" "}
@@ -193,14 +205,12 @@ export default function ExamsPage() {
                   ? `${previewExam.sections?.length || 0} sections`
                   : "No sections"}
               </p>
-              {previewExam.sections?.length
-                ? previewExam.sections.map((s: any, i: number) => (
-                    <p key={i}>
-                      Section {i + 1}: {s.title || "Untitled"} —{" "}
-                      {s.duration || "N/A"} min
-                    </p>
-                  ))
-                : null}
+              {previewExam.sections?.map((s: Section, i: number) => (
+                <p key={i}>
+                  Section {i + 1}: {s.title || "Untitled"} —{" "}
+                  {s.duration || "N/A"} min
+                </p>
+              ))}
             </div>
 
             <button
@@ -492,7 +502,9 @@ export default function ExamsPage() {
           <Filter className="w-5 h-5 text-gray-500" />
           <select
             value={visibilityFilter}
-            onChange={(e) => setVisibilityFilter(e.target.value as any)}
+            onChange={(e) =>
+              setVisibilityFilter(e.target.value as VisibilityFilter)
+            }
             className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1E293B] focus:ring-2 focus:ring-[#0A236E]"
           >
             <option value="all">All Visibility</option>
@@ -502,7 +514,9 @@ export default function ExamsPage() {
 
           <select
             value={hasSectionsFilter}
-            onChange={(e) => setHasSectionsFilter(e.target.value as any)}
+            onChange={(e) =>
+              setHasSectionsFilter(e.target.value as HasSectionsFilter)
+            }
             className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1E293B] focus:ring-2 focus:ring-[#0A236E]"
           >
             <option value="all">All Types</option>
@@ -523,7 +537,7 @@ export default function ExamsPage() {
             key={tab.key}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => setFilterTab(tab.key as any)}
+            onClick={() => setFilterTab(tab.key as FilterTab)}
             className={`capitalize px-4 py-2 rounded-md transition text-sm font-medium flex items-center gap-2 ${
               filterTab === tab.key
                 ? "bg-[#0A236E] text-white"
