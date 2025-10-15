@@ -294,9 +294,6 @@ export default function CreateSOPPage() {
     );
   }
 
-  // ============================================================
-  // INSIDE A CATEGORY VIEW
-  // ============================================================
   if (selectedCategory) {
     return (
       <div className="p-6 space-y-6">
@@ -348,7 +345,7 @@ export default function CreateSOPPage() {
           </div>
         </div>
 
-        {/* SUBCATEGORIES (List Style) */}
+        {/* SUBCATEGORIES */}
         <div>
           <h3 className="font-medium text-[#0A236E] mb-2">Subcategories</h3>
           {selectedCategory.subcategories?.length ? (
@@ -388,7 +385,7 @@ export default function CreateSOPPage() {
           )}
         </div>
 
-        {/* SOPs (List Style) */}
+        {/* SOPs */}
         <div>
           <h3 className="font-medium text-[#0A236E] mb-2">SOPs</h3>
           {selectedCategory.sops?.length ? (
@@ -432,7 +429,7 @@ export default function CreateSOPPage() {
           )}
         </div>
 
-        {/* Category Modal for Subcategory Creation/Editing */}
+        {/* Category Modal for Subcategory */}
         <CategoryModal
           open={showCategoryModal && isSubcategoryMode}
           onClose={() => {
@@ -462,7 +459,9 @@ export default function CreateSOPPage() {
   // ============================================================
   // ROOT VIEW (CATEGORY LIST)
   // ============================================================
-  const currentStatus = editingSOP?.status ?? "Draft";
+  
+  // ✅ FIXED: In this scope, editingSOP is always null, so status is "Draft".
+  const currentStatus = "Draft";
 
   return (
     <div className="p-6 space-y-4">
